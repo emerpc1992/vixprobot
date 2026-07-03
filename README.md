@@ -115,6 +115,36 @@ SERVER_URL = "https://CAMBIAR-ESTO.onrender.com"
 por tu URL real de Render (sin barra final). Listo, el bot ya puede
 hacer login.
 
+## Modulo de licencias (Panel de Control DAKO-BOT)
+
+Este servidor ahora tambien controla la activacion de cada bot por
+correo (lo usa `dako_admin_panel.py`, el Panel de Control, y
+`dako_license_client.py`, integrado en el bot).
+
+1. En Render, en "Environment", agrega una variable mas:
+   - `ADMIN_KEY` = una clave secreta que vos elijas (ej: un password
+     largo). Esta es la que vas a poner en `dako_admin_panel.py` para
+     poder administrar las cuentas. Si no la configuras, se usa el
+     valor por defecto `dako-admin-2024` (cambialo en produccion).
+2. Los datos de licencias se guardan en `data/licenses.json` dentro
+   del propio servicio. Igual que las sesiones OAuth, esto vive
+   mientras el servicio esta arriba; si Render redeploya el servicio
+   se reinicia. Para produccion seria mejor una base de datos, pero
+   para controlar un puñado de cuentas esto alcanza.
+3. Endpoints nuevos:
+   - `POST /api/license/register` `{email}` -- el bot se registra la
+     primera vez que corre.
+   - `GET /api/license/status?email=...` -- el bot pregunta si sigue
+     activo.
+   - `GET /api/license/messages?email=...&since_id=N` -- el bot
+     revisa si el admin le mando un mensaje nuevo.
+   - `GET /api/admin/accounts` (requiere header `X-Admin-Key`) -- lista
+     todas las cuentas para el Panel de Control.
+   - `POST /api/admin/accounts/:email/activate` / `.../deactivate`
+     (requiere `X-Admin-Key`).
+   - `POST /api/admin/message` `{to, text}` (requiere `X-Admin-Key`) --
+     `to` puede ser un correo o `"*"` para todos los bots.
+
 ## Por que no hay client_secret
 
 La documentacion oficial de Deriv (developers.deriv.com/docs/intro/oauth/)
